@@ -175,4 +175,4 @@ live files.
 
 | Fix | Folder | Status |
 |---|---|---|
-| Event Date calendar missing for recurring events in the Offline Cart (E79280) | [`recurring-event-calendar-fix/`](./recurring-event-calendar-fix/README.md) | backed up, see its README |
+| Event Date calendar missing for recurring events in the Offline Cart (E79280) | [`recurring-event-calendar-fix/`](./recurring-event-calendar-fix/README.md) | applied & verified |

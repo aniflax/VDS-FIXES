@@ -130,9 +130,32 @@ each row also carries `"repeat_frequency":"daily"` and `"event_start_date":"..."
 
 ## 7. Status
 
-- [x] Original backed up (this commit)
-- [ ] Fix applied to the live site
-- [ ] Post-change verified
+Applied to the live site on **2026-09-28** via WordPress
+**Appearance → Theme File Editor** (file `api_get_customSankalpas.php`, theme `vds`).
+
+- [x] Original backed up
+- [x] Fix applied to the live site
+- [x] Post-change verified
+
+Live file after the change:
+
+```
+sha256: 7c2e2cbfd6b1a90cfa37c4c8643f570d9e7457bae7caeba18a03eae3d5b5e708
+bytes:  2027
+```
+
+(Identical to `fixed/wp-content/themes/vds/api_get_customSankalpas.php`.)
+
+Post-change verification:
+
+| Check | Before | After |
+|---|---|---|
+| API `?eventid=E79280` returns `repeat_frequency` | absent | `"daily"` |
+| Offline Cart popup, E79280 → Event Date box visible | no | **yes** (value `2026-09-27`) |
+| Offline Cart popup, E73967 → Event Date box visible (regression check) | yes | **yes** (still works) |
+
+The API was also confirmed to return HTTP 200 with valid JSON after the change,
+so there is no PHP syntax error.
 
 ## 8. Notes / follow-up
 
