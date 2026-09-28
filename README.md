@@ -144,3 +144,27 @@ Details : All N Results" count) should now show **26**, matching Excel.
 - The same exact-match pattern (`eventDate='...'`) may exist in other report
   files (finance / coordinator / vvmvp). If a date filter there shows short
   counts, apply the same block.
+
+---
+
+## 8. Applied (to be confirmed)
+
+The change above was applied to the live site on 2026-09-28 via
+WordPress **Appearance → Theme File Editor**, on these two files only:
+
+- `assets/vkutable/server_processing_seva.php`
+- `assets/vkutable/api_download_contrib_data.php`
+
+Post-change verification (Event ID `E73967`):
+
+| Filter | Before | After |
+|---|---|---|
+| Report page, Event Date = `09/28/2026` | 5 | **26** |
+| Table endpoint, `event_date=09/28/2026` | 5 | **26** |
+| Export endpoint, `event_date=09/28/2026` | 5 | **26** |
+| Table endpoint, `event_date=10/13/2026` (stored only as `2026-10-13`) | 0 | **1** |
+
+The exact post-change copies are kept under `fixed/` for reference.
+
+To roll back: restore the two files in `backups/` (pre-change versions) over the
+live files.
