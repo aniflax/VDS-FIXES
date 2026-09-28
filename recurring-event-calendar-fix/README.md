@@ -14,7 +14,7 @@ Two related changes:
 - **Part A** — make the Event Date calendar appear for daily recurring events
   that use custom sankalpas (e.g. E79280). *(applied & verified)*
 - **Part B** — limit the selectable dates to the event's date window (never
-  before today / the start date, never after the end date). *(backed up; applying)*
+  before today / the start date, never after the end date). *(applied & verified)*
 
 ---
 
@@ -296,6 +296,26 @@ Restore the two files in `backups/` over the live files (via WordPress
 
 ## B7. Status (Part B)
 
+Applied to the live site on **2026-09-28** via WordPress
+**Appearance → Theme File Editor** (theme `vds`).
+
 - [x] Originals backed up
-- [ ] Applied to the live site
-- [ ] Post-change verified
+- [x] Applied to the live site
+- [x] Post-change verified
+
+Live files after the change (each identical to its `fixed/` copy):
+
+```
+a0c4d6fd0aace2eadfc574d82d69bc303909b085e7f714dfa257a72a567c0dec  api_get_customSankalpas.php  (2184 bytes)
+c0ba36938171f3f082523ff59e0d7bcaa68c5dbb4f6aee7ec1af7c16aa04877b  cartpayments/v-vds_manage_cart_offline_single_payments.php  (110104 bytes)
+```
+
+Post-change verification (popup triggered for each event, read from the picker):
+
+| Event | minDate | maxDate | Default value | Day checks |
+|---|---|---|---|---|
+| **E79280** (27 Sep → 10 Oct 2026) | 2026-09-28 | 2026-10-10 | 09/28/2026 | 27 Sep disabled; 28 Sep selectable; 10 Oct selectable; **11 Oct disabled** |
+| E73967 (1 Apr 2026 → 31 Mar 2027) | 2026-09-28 | 2027-03-31 | 09/28/2026 | field still shows (no regression) |
+
+The Offline Cart page loads and the popup works with the modified script, so
+there is no JavaScript syntax error.
