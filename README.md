@@ -168,3 +168,11 @@ The exact post-change copies are kept under `fixed/` for reference.
 
 To roll back: restore the two files in `backups/` (pre-change versions) over the
 live files.
+
+---
+
+## 9. Other fixes in this repo
+
+| Fix | Folder | Status |
+|---|---|---|
+| Event Date calendar missing for recurring events in the Offline Cart (E79280) | [`recurring-event-calendar-fix/`](./recurring-event-calendar-fix/README.md) | backed up, see its README |
