@@ -4,9 +4,17 @@ Date: **2026-09-28**
 Site: `backend.vaidicpujas.org` (WordPress theme `vds`)
 Page: `https://backend.vaidicpujas.org/offlinecart/`
 
-This folder is the **backup + record** for one small fix. It holds the
-**original (unmodified) copy** of the file that is changed, so the change can be
-rolled back at any time. Nothing here is auto-deployed — it is a manual record.
+This folder is the **backup + record** for the recurring-event calendar fix. It
+holds the **original (unmodified) copies** of the files that are changed, so the
+change can be rolled back at any time. Nothing here is auto-deployed — it is a
+manual record.
+
+Two related changes:
+
+- **Part A** — make the Event Date calendar appear for daily recurring events
+  that use custom sankalpas (e.g. E79280). *(applied & verified)*
+- **Part B** — limit the selectable dates to the event's date window (never
+  before today / the start date, never after the end date). *(backed up; applying)*
 
 ---
 
@@ -165,3 +173,129 @@ so there is no PHP syntax error.
   `cartpayments/v-vds_manage_cart_offline_single_payments.php` would also need to
   be relaxed (e.g. show for any non-empty `repeat_frequency` other than
   `nonRecurring`). That is a larger change and is **not** part of this fix.
+
+---
+
+# Part B — Limit the selectable dates to the event's date window
+
+Date: **2026-09-28** (follow-up to Part A).
+
+## B1. Requirement
+
+For **daily recurring** events, the Event Date calendar must only allow dates
+inside the event's own window:
+
+- **no date before today** (and never before the event start date), and
+- **no date after the event end date**.
+
+Example — **E79280** runs **27 Sep 2026 → 10 Oct 2026**. On 28 Sep 2026:
+
+- 27 Sep must **not** be selectable (in the past),
+- 11 Oct and later must **not** be selectable (after the event end date),
+- 28 Sep … 10 Oct are selectable.
+
+Before Part B the picker only had `minDate: new Date()` and **no** `maxDate`, so
+dates after the event end could still be picked (and the box pre-filled with the
+raw start date, even when that was in the past).
+
+## B2. Files changed
+
+```
+wp-content/themes/vds/api_get_customSankalpas.php                                  (also send event_end_date)
+wp-content/themes/vds/cartpayments/v-vds_manage_cart_offline_single_payments.php   (limit the picker)
+```
+
+Originals backed up at:
+
+```
+recurring-event-calendar-fix/backups/wp-content/themes/vds/api_get_customSankalpas.php
+recurring-event-calendar-fix/backups/wp-content/themes/vds/cartpayments/v-vds_manage_cart_offline_single_payments.php
+```
+
+Original SHA-256:
+
+```
+e658e6bb2bf53aed2d37567c73cb6a342e50a0ee2b349f7c5e97a8d51d5a9efa  api_get_customSankalpas.php
+b4476c5aa0f1bf3e5c6923419e08148ac5f0bd2693bfe26890b2b0b3dd3868a6  v-vds_manage_cart_offline_single_payments.php
+```
+
+## B3. The change
+
+**(a) `api_get_customSankalpas.php`** — also return `event_end_date` (it already
+returned `event_start_date` / `repeat_frequency`). One line added in each branch:
+
+```php
+$customSankalpas[$k]['event_end_date'] = $eventDetailsData[0]['event_end_date'];   // custom-sankalpa branch
+$mySankalpaObj->event_end_date = $eventDetailsData[0]['event_end_date'];           // standard branch
+```
+
+**(b) `cartpayments/v-vds_manage_cart_offline_single_payments.php`**:
+
+1. New helper function, added just above the `#DescModal` `show.bs.modal` handler:
+
+```js
+function vdsParseEventDate(vdsStr) {
+    if (!vdsStr) { return null; }
+    var vdsParts = String(vdsStr).replace(/\//g, "-").split("-");
+    if (vdsParts.length === 3 && vdsParts[0].length === 4) {
+        return new Date(parseInt(vdsParts[0], 10), parseInt(vdsParts[1], 10) - 1, parseInt(vdsParts[2], 10));
+    }
+    var vdsD = new Date(vdsStr);
+    if (isNaN(vdsD.getTime())) { return null; }
+    vdsD.setHours(0, 0, 0, 0);
+    return vdsD;
+}
+```
+
+2. Inside the `if (value.repeat_frequency == "daily")` block, the old line
+   `$("#custom_event_date").val(value.event_start_date);` is replaced by the
+   window logic (the three `prop(...)`/`datepicker(... "disabled" ...)` lines
+   stay as they were):
+
+```js
+var vdsToday = new Date(); vdsToday.setHours(0, 0, 0, 0);
+var vdsStart = vdsParseEventDate(value.event_start_date);
+var vdsEnd = vdsParseEventDate(value.event_end_date);
+var vdsMin = vdsToday;
+if (vdsStart && vdsStart.getTime() > vdsToday.getTime()) { vdsMin = vdsStart; }
+var vdsDefault = vdsMin;
+if (vdsEnd && vdsDefault.getTime() > vdsEnd.getTime()) { vdsDefault = vdsEnd; }
+$("#custom_event_date").datepicker("option", "minDate", vdsMin);
+$("#custom_event_date").datepicker("option", "maxDate", vdsEnd ? vdsEnd : null);
+$("#custom_event_date_lbl").prop("hidden", false);
+$("#custom_event_date").prop("hidden", false);
+$("#custom_event_date").datepicker("option", "disabled", false);
+$("#custom_event_date").val($.datepicker.formatDate("mm/dd/yy", vdsDefault));
+```
+
+Fixed copies (post-change) are kept at `fixed/...`:
+
+```
+a0c4d6fd0aace2eadfc574d82d69bc303909b085e7f714dfa257a72a567c0dec  fixed/.../api_get_customSankalpas.php
+c0ba36938171f3f082523ff59e0d7bcaa68c5dbb4f6aee7ec1af7c16aa04877b  fixed/.../cartpayments/v-vds_manage_cart_offline_single_payments.php
+```
+
+## B4. Why this works
+
+`vdsMin` = the later of **today** and the **event start date**, and `vdsMax` =
+the **event end date**. jQuery UI's `minDate`/`maxDate` then grey out everything
+outside that range, so only valid dates can be picked. The field is pre-filled
+with `vdsMin` (clamped to the end date if needed), so it never shows an
+unselectable date.
+
+## B5. Result
+
+For E79280 on 28 Sep 2026: the picker opens with **28 Sep 2026** selected and
+only **28 Sep … 10 Oct 2026** selectable. The same rule applies to **every**
+daily recurring event.
+
+## B6. How to roll back (Part B)
+
+Restore the two files in `backups/` over the live files (via WordPress
+**Appearance → Theme File Editor**, or SFTP).
+
+## B7. Status (Part B)
+
+- [x] Originals backed up
+- [ ] Applied to the live site
+- [ ] Post-change verified

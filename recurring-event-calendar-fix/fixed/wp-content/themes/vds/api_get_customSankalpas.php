@@ -23,6 +23,7 @@ if ($additionalSankalpa == 1){
 	// calendar shows for daily-recurring events that use custom sankalpas (e.g. E79280).
 	foreach ($customSankalpas as $k => $row) {
 		$customSankalpas[$k]['event_start_date'] = $eventDetailsData[0]['event_start_date'];
+		$customSankalpas[$k]['event_end_date'] = $eventDetailsData[0]['event_end_date'];
 		$customSankalpas[$k]['repeat_frequency']  = $eventDetailsData[0]['repeat_frequency'];
 	}
 }else{
@@ -32,6 +33,7 @@ if ($additionalSankalpa == 1){
 	$mySankalpaObj->sankalpa_amount = $eventDetailsData[0]['sevaamt'];
 	$mySankalpaObj->sankalpa_pass = $eventDetailsData[0]['sankalpaEntryPass'];
 	$mySankalpaObj->event_start_date = $eventDetailsData[0]['event_start_date'];
+	$mySankalpaObj->event_end_date = $eventDetailsData[0]['event_end_date'];
 	$mySankalpaObj->repeat_frequency = $eventDetailsData[0]['repeat_frequency']; //daily nonRecurring 
 	$mySankalpaObj->tomorrow = date("m/d/Y", strtotime("+1 day"));
 			
